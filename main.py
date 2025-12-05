@@ -5,7 +5,7 @@ import json
 import re
 import unicodedata
 
-url = "https://animetosho.org/search"
+url = "https://animetosho.org/"
 
 def clean_title(t):
     t = unicodedata.normalize('NFKC', t)
@@ -18,7 +18,9 @@ def clean_title(t):
     return t
 
 VIDEO_SOURCES = {'WEB-DL', 'WEBRIP', 'BD', 'BLURAY', 'DVD', 'HDTV'}
-STREAMING_SERVICES = {'KKTV', 'CR', 'NF', 'AMZN', 'DSNP', 'BILI', 'HIDIVE', 'APPS', 'YTB'}
+STREAMING_SERVICES = {'KKTV', 'CR', 'NF', 'AMZN', 'DSNP', 'BILI', 'HIDIVE', 'APPS', 'YTB', 'FSP DN', 'ToonsHub', 'Gecko', 'Chihiro', 'Half-Baked',
+                      'Yameii', 'Starbez', 'LbE3L', 'KawaSubs', 'DKB'
+                    }
 AUDIO_TERMS = {'AAC', 'AC3', 'DDP', 'FLAC', 'OPUS', 'DTS', 'TRUEHD', 'DUAL', 'MULTI', '2.0', '5.1', '7.1', 'ENGLISH DUB', 'DUB'}
 CODEC_TERMS = {'HEVC', 'AVC', 'X264', 'X265', 'H.264', 'H.265', '10BIT', '8BIT'}
 RES_TERMS = {'1080P', '720P', '480P', '2160P', '4K'}
@@ -98,27 +100,15 @@ def tokenize(title):
     return tokens
 
 def createTrainingData(tokens):
-    training_data = {
-        'GROUP': [], 'SEASON': [], 'EPISODE': [], 
-        'RES': [], 'SOURCE': [], 'AUDIO': [], 
-        'CODEC': [], 'O': [], 'TITLE': [], 
-        'HASH': [], 'META': []
-    }
-    
+    labels = []
     for i in range(len(tokens)):
         label = heuristic_labeler(tokens, i)
-        token = tokens[i]
-        
-        if label not in training_data:
-            training_data[label] = []
-            
-        training_data[label].append(token)
-    
-    return training_data
+        labels.append(label)
+    return labels
 
 async def main():
     try:
-        response = requests.get(url, params={'q': 'overlord'})
+        response = requests.get(url)
 
         if response.status_code == 200:
             print("Request success")
@@ -136,17 +126,17 @@ async def main():
                 
                 if title:
                     tokens = tokenize(title)
-                    labeled_data = createTrainingData(tokens)
+                    # labeled_data = createTrainingData(tokens)
                     
                     results.append({
                         'title': title, 
                         'tokens': tokens, 
-                        'training_data': labeled_data
+                        'training_data': createTrainingData(tokens)
                     })
             
             print(f"Found {len(results)} results")
             
-            with open('dump1.json', 'w', encoding='utf-8') as f:
+            with open('dump.json', 'w', encoding='utf-8') as f:
                 json.dump(results, f, indent=2, ensure_ascii=False)
                 
         else:

@@ -1,2 +1,4 @@
 requests
 BeautifulSoup4
+sklearn-crfsuite
+scikit-learn
